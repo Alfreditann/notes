@@ -1,4 +1,4 @@
-note taker app
+**note taker app**
 
 for å laste ned de required packages kjør
 
