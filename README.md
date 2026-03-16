@@ -1,11 +1,41 @@
-**note taker app**
+# Note Taker App
 
-for å laste ned de required packages kjør
+En enkel webapplikasjon for å opprette og lagre notater.
+Applikasjonen bruker **Node.js**, **Express**, **EJS** og **MariaDB**.
 
-npm i dotenv ejs express mariadb path user
+---
 
-npm i nodemon --save-dev
+## Installasjon
 
-**Kjøre applikasjonen**
+Installer nødvendige pakker:
 
+```bash
+npm install dotenv ejs express mariadb user
+```
+
+Installer **nodemon** for utvikling:
+
+```bash
+npm install nodemon --save-dev
+```
+
+---
+
+## Kjøre applikasjonen
+
+Start applikasjonen i utviklingsmodus:
+
+```bash
 npm run dev
+```
+
+---
+
+## Teknologier brukt
+
+* Node.js
+* Express
+* EJS
+* MariaDB
+* dotenv
+* Nodemon
