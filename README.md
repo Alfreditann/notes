@@ -7,4 +7,5 @@ npm i dotenv ejs express mariadb path user
 npm i nodemon --save-dev
 
 **Kjøre applikasjonen**
+
 npm run dev
