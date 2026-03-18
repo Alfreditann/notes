@@ -10,7 +10,7 @@ Applikasjonen bruker **Node.js**, **Express**, **EJS** og **MariaDB**.
 Installer nødvendige pakker:
 
 ```bash
-npm install dotenv ejs express mariadb user
+npm install dotenv ejs express mariadb user mysql2
 ```
 
 Installer **nodemon** for utvikling:
