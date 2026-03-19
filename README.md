@@ -13,7 +13,7 @@ Installer nødvendige pakker:
 npm install dotenv ejs express mariadb user mysql2
 ```
 
-Installer **nodemon** for utvikling:
+Installer **nodemon** for å kjøre applikasjonen som dev:
 
 ```bash
 npm install nodemon --save-dev
@@ -23,7 +23,7 @@ npm install nodemon --save-dev
 
 ## Kjøre applikasjonen
 
-Start applikasjonen i utviklingsmodus:
+Start applikasjonen i dev:
 
 ```bash
 npm run dev
