@@ -3,7 +3,12 @@ const app = express();
 
 const registerRoute = require(`./routes/register`)
 
+// Parse form and JSON request bodies before routes access req.body.
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 app.use(`/register`, registerRoute)
+
 
 app.set("view engine", "ejs");
 
