@@ -5,12 +5,12 @@ En enkel notat- og todo-app med:
 Backend: Python (Flask) + SQLite
 Frontend: Node.js (Express) + EJS
 
-🛠️ Krav
+Krav
 Python 3.10+
 Node.js 18+
 npm
 
-💻 Installering og kjøring
+Installering og kjøring
 
 1. Backend (Python/Flask)
 Opprett virtuelt miljø og aktiver det:
