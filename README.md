@@ -15,7 +15,9 @@ Installering og kjøring
 1. Backend (Python/Flask)
 Opprett virtuelt miljø og aktiver det:
 python -m venv venv
-source venv/bin/activate   
+
+source venv/bin/activate  
+
 venv\Scripts\activate
 
 Installer Flask og CORS:
