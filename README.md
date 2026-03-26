@@ -20,7 +20,7 @@ python -m venv venv
 ```bash
 source venv/bin/activate  
 ```
-Installer Flask og CORS:
+Installer nødvendige pakker for python:
 ```bash
 pip install -r requirements.txt
 ```
