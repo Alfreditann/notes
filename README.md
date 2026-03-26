@@ -1,41 +1,27 @@
-# Note Taker App
+Notes & Todo App
 
-En enkel webapplikasjon for å opprette og lagre notater.
-Applikasjonen bruker **Node.js**, **Express**, **EJS** og **MariaDB**.
+En enkel notat- og todo-app med:
 
----
-
-## Installasjon
-
+Backend: Python (Flask) + SQLite
+Frontend: Node.js (Express) + EJS
+🛠️ Krav
+Python 3.10+
+Node.js 18+
+npm
+💻 Installering og kjøring
+1. Backend (Python/Flask)
+Opprett virtuelt miljø og aktiver det:
+python -m venv venv
+source venv/bin/activate   # Linux/macOS
+venv\Scripts\activate      # Windows
+Installer Flask og CORS:
+pip install flask flask-cors
+Start backend:
+python python/app.py
+Kjører på http://localhost:5000
+2. Frontend (Node/Express)
 Installer nødvendige pakker:
-
-```bash
-npm install dotenv ejs express mariadb user mysql2
-```
-
-Installer **nodemon** for å kjøre applikasjonen som dev:
-
-```bash
-npm install nodemon --save-dev
-```
-
----
-
-## Kjøre applikasjonen
-
-Start applikasjonen i dev:
-
-```bash
-npm run dev
-```
-
----
-
-## Teknologier brukt
-
-* Node.js
-* Express
-* EJS
-* MariaDB
-* dotenv
-* Nodemon
+npm install express ejs
+Start frontend:
+node server.js
+Kjører på http://localhost:3000
