@@ -75,6 +75,6 @@ app.post("/todos/delete/:id", async (req, res) => {
   res.redirect("/");
 });
 
-app.listen(3000, () =>
+app.listen(3000,'0.0.0.0', () =>
   console.log("Frontend running on http://localhost:3000"),
 );
