@@ -14,23 +14,30 @@ Installering og kjøring
 
 1. Backend (Python/Flask)
 Opprett virtuelt miljø og aktiver det:
+```bash
 python -m venv venv
-
+```
+```bash
 source venv/bin/activate  
-
-venv\Scripts\activate
-
+```
 Installer Flask og CORS:
-pip install flask flask-cors
+```bash
+pip install -r requirements.txt
+```
 
 Start backend:
-python python/app.py
+```bash
+python3 app.py
+```
 Kjører på http://localhost:5000
 
 2. Frontend (Node/Express)
 Installer nødvendige pakker:
-npm install express ejs
-
+```bash
+npm install express ejs path axios
+```
 Start frontend:
+``````bash
 node server.js
+```
 Kjører på http://localhost:3000
