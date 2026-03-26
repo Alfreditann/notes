@@ -9,7 +9,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 const API_KEY = "hemmelig123";
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = "http://192.168.20.35:5000/api";
 
 app.get("/", async (req, res) => {
   try {
