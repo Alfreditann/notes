@@ -5,6 +5,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+
 DB = "notes.db"
 API_KEY = "hemmelig123"
 
@@ -116,6 +117,7 @@ def delete_todo(id):
     c.connection.commit()
     c.connection.close()
     return {"message": "Todo deleted"}
+    
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -14,27 +14,29 @@
     <button class="btn btn-primary btn-sm">Legg til notat</button>
   </form>
 
-  <ul class="list-group mb-5">
-    <% if (data && data.notes) { %>
-      <% data.notes.forEach(note => { %>
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <span><strong><%= note.title %></strong>: <%= note.content %></span>
-          <span>
-            <form action="/notes/edit/<%= note.id %>" method="POST" class="d-inline">
+  <% if (data && data.notes) { %>
+    <% data.notes.forEach(note => { %>
+      <div class="mb-3 border p-2">
+        <strong class="d-block"><%= note.title %></strong>
+        <span class="d-block mt-1"><%= note.content %></span>
+        <div class="mt-2">
+          <details class="d-inline-block me-2">
+            <summary class="btn btn-sm btn-primary">Edit</summary>
+            <form action="/notes/edit/<%= note.id %>" method="POST" class="mt-2 d-flex gap-2 flex-wrap align-items-center">
               <input type="text" name="title" placeholder="Ny tittel" value="<%= note.title %>">
               <input type="text" name="content" placeholder="Nytt innhold" value="<%= note.content %>">
-              <button type="submit" class="btn btn-sm btn-primary">Edit</button>
+              <button type="submit" class="btn btn-sm btn-primary">Save</button>
             </form>
-            <form action="/notes/delete/<%= note.id %>" method="POST" class="d-inline">
-              <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-            </form>
-          </span>
-        </li>
-      <% }) %>
-    <% } else { %>
-      <li class="list-group-item">Ingen notater funnet</li>
-    <% } %>
-  </ul>
+          </details>
+          <form action="/notes/delete/<%= note.id %>" method="POST" class="d-inline">
+            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+          </form>
+        </div>
+      </div>
+    <% }) %>
+  <% } else { %>
+    <p>Ingen notater funnet</p>
+  <% } %>
 
   <h1>Todo-lister</h1>
   <form action="/todos" method="POST" class="mb-4">
