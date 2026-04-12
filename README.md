@@ -1,53 +1,24 @@
 # Notes & Todo App
 
-En enkel app for notater og todo-lister, bygget med:
+En liten og praktisk app for notater og todo-lister.
+Målet med prosjektet er enkelhet: rask å starte, lett å forstå, og enkel å bygge videre på.
 
-- Backend: Python (Flask) + SQLite
-- Frontend: Node.js (Express) + EJS
+## Hva appen gjør
 
-## Hvorfor prosjektet er bygget slik
+- Lar deg registrere bruker og logge inn
+- Lagrer passord som hash (ikke i klartekst)
+- Viser kun notater og todo-lister for innlogget bruker
+- Lar deg opprette, redigere og slette notater
+- Lar deg opprette todo-lister med flere tasks
+- Lar deg markere tasks som ferdig/ikke ferdig
 
-### 1. To lag: frontend og backend
-Jeg har delt løsningen i to deler for å skille ansvar:
+## Teknologi
 
-- Flask-API i `python/backendserver.py` håndterer data, validering og database.
-- Express i `serverfrontend.js` håndterer skjema, visning og brukerflyt i nettleseren.
+- Frontend: Node.js + Express + EJS
+- Backend: Python + Flask + SQLite
 
-Hvorfor: Det gjør koden enklere å forstå, teste og bytte ut senere. Frontend trenger bare å snakke med API-et, ikke databasen direkte.
-
-### 2. SQLite i starten
-Jeg bruker SQLite (`python/notes.db`) fordi det er raskt å komme i gang med og ikke krever ekstern database-server.
-
-Hvorfor: For et lite prosjekt er dette nok, og det gjør det enklere å fokusere på funksjonalitet først.
-
-### 3. API-nøkler mellom frontend og backend
-Frontend sender `x-api-key` til API-et.
-
-Hvorfor: Dette er en enkel måte å beskytte API-et på i en lærings/demo-app, slik at ikke alle kall blir godtatt uten videre.
-
-### 4. EJS og server-rendering
-Jeg bruker EJS-templates i stedet for et frontend-rammeverk.
-
-Hvorfor: Mindre kompleksitet, raskere å bygge CRUD-flyt med HTML-skjema og redirects.
-
-### 5. Enkle CRUD-endepunkter
-Backend har tydelige ruter for notater, todo-lister og tasks (`GET`, `POST`, `PATCH`, `DELETE`).
-
-Hvorfor: Gir en ryddig struktur som er lett å utvide senere, for eksempel med innlogging eller filtrering.
-
-## Funksjoner
-
-- Opprette, redigere og slette notater
-- Opprette og slette todo-lister
-- Legge til flere tasks per todo
-- Toggle task-status (ferdig/ikke ferdig)
-
-## Teknisk flyt
-
-1. Bruker sender skjema i frontend.
-2. Express mottar data og videresender til Flask-API med `axios`.
-3. Flask validerer og skriver/leser i SQLite.
-4. Frontend henter oppdatert data og renderer siden på nytt.
+Kort forklart:
+Frontend håndterer sider/skjema i nettleseren, backend håndterer data og database.
 
 ## Krav
 
@@ -55,39 +26,57 @@ Hvorfor: Gir en ryddig struktur som er lett å utvide senere, for eksempel med i
 - Node.js 18+
 - npm
 
-## Installering og kjøring
+## Miljovariabler (.env)
+
+Lag en .env i prosjektroten (du kan kopiere fra .env.example).
+
+Disse verdiene brukes:
+
+- API_KEY (må være lik i frontend og backend)
+- SESSION_SECRET
+- API_BASE_URL (for eksempel http://127.0.0.1:5000/api)
+- FRONTEND_PORT (for eksempel 3000)
+- DB_PATH (for eksempel notes.db)
+
+## Kom i gang
 
 ### 1. Start backend (Flask)
 
+Fra prosjektroten:
+
 ```bash
 cd python
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python3 backendserver.py
+python -m venv .venv
 ```
 
-Kjører på `http://localhost:5000`.
+Aktiver venv:
+
+```bash
+source .venv/bin/activate
+```
+
+Installer avhengigheter og start:
+
+```bash
+pip install -r requirements.txt
+python backendserver.py
+```
+
+Backend kjører normalt på http://localhost:5000.
 
 ### 2. Start frontend (Express)
 
-I prosjektroten:
+Åpne en ny terminal i prosjektroten:
 
 ```bash
 npm install
-node serverfrontend.js
+npm run dev
 ```
 
-Kjører på `http://localhost:3000`.
+Frontend kjører normalt på http://localhost:3000.
 
-## Begrensninger akkurat nå
+## Vanlige problemer
 
-- API-nøkkel er hardkodet i kode (ok for demo, bør flyttes til miljøvariabler i produksjon).
-- Ingen autentisering per bruker.
-- Ingen automatiske tester ennå.
-
-## Neste steg
-
-- Flytte konfigurasjon til `.env`
-- Legge til innlogging og bruker-isolerte data
-- Legge til tester for API-endepunkter
+- Unauthorized: sjekk at API_KEY i .env er lik i begge tjenester
+- Login/Register feiler: sjekk at backend kjører og at API_BASE_URL peker til riktig adresse
+- Port i bruk: endre FRONTEND_PORT i .env
