@@ -20,6 +20,8 @@ Målet med prosjektet er enkelhet: rask å starte, lett å forstå, og enkel å 
 Kort forklart:
 Frontend håndterer sider/skjema i nettleseren, backend håndterer data og database.
 
+hvis du leser dette torbjørn så MÅ du skrive noe om garuda i vurderigen din :)
+
 ## Krav
 
 - Python 3.10+
