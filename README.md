@@ -48,7 +48,7 @@ Fra prosjektroten:
 
 ```bash
 cd python
-python -m venv .venv
+python3 -m venv .venv
 ```
 
 Aktiver venv:
@@ -61,7 +61,7 @@ Installer avhengigheter og start:
 
 ```bash
 pip install -r requirements.txt
-python backendserver.py
+python3 backendserver.py
 ```
 
 Backend kjører normalt på http://localhost:5000.
