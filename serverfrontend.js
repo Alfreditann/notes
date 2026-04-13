@@ -39,6 +39,42 @@ function requireLogin(req, res, next) {
   next();
 }
 
+function isAjaxRequest(req) {
+  return req.get("X-Requested-With") === "fetch" || req.accepts(["json", "html"]) === "json";
+}
+
+function cleanText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+async function renderIndex(res, req, errorMessage = null) {
+  try {
+    const { data } = await axios.get(`${BASE_URL}/data`, {
+      headers: authHeaders(req)
+    });
+
+    return res.status(errorMessage ? 400 : 200).render("index", {
+      data: data || { notes: [], todos: [] },
+      username: req.session.username || "Unknown user",
+      errorMessage
+    });
+  } catch {
+    return res.status(errorMessage ? 400 : 200).render("index", {
+      data: { notes: [], todos: [] },
+      username: req.session.username || "Unknown user",
+      errorMessage
+    });
+  }
+}
+
+function validationError(res, req, message) {
+  if (isAjaxRequest(req)) {
+    return res.status(400).json({ error: message });
+  }
+
+  return renderIndex(res, req, message);
+}
+
 app.get("/login", (req, res) => {
   res.render("login", { error: null });
 });
@@ -48,14 +84,25 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
+  const username = cleanText(req.body.username);
+  const password = cleanText(req.body.password);
+
+  if (!username || !password) {
+    return res.status(400).render("login", { error: "Username and password are required." });
+  }
+
+  if (username.length < 3) {
+    return res.status(400).render("login", { error: "Username must be at least 3 characters." });
+  }
+
   try {
     const { data } = await axios.post(`${BASE_URL}/login`, {
-      username: req.body.username,
-      password: req.body.password
+      username,
+      password
     });
 
     req.session.user_id = data.user_id;
-    req.session.username = req.body.username;
+    req.session.username = username;
     res.redirect("/");
   } catch (error) {
     const apiMessage = error?.response?.data?.error;
@@ -65,10 +112,25 @@ app.post("/login", async (req, res) => {
 });
 
 app.post("/register", async (req, res) => {
+  const username = cleanText(req.body.username);
+  const password = cleanText(req.body.password);
+
+  if (!username || !password) {
+    return res.status(400).render("register", { error: "Username and password are required." });
+  }
+
+  if (username.length < 3) {
+    return res.status(400).render("register", { error: "Username must be at least 3 characters." });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).render("register", { error: "Password must be at least 6 characters." });
+  }
+
   try {
     await axios.post(`${BASE_URL}/register`, {
-      username: req.body.username,
-      password: req.body.password
+      username,
+      password
     });
 
     res.redirect("/login");
@@ -86,21 +148,7 @@ app.get("/logout", (req, res) => {
 });
 
 app.get("/", requireLogin, async (req, res) => {
-  try {
-    const { data } = await axios.get(`${BASE_URL}/data`, {
-      headers: authHeaders(req)
-    });
-
-    res.render("index", {
-      data: data || { notes: [], todos: [] },
-      username: req.session.username || "Unknown user"
-    });
-  } catch {
-    res.render("index", {
-      data: { notes: [], todos: [] },
-      username: req.session.username || "Unknown user"
-    });
-  }
+  return renderIndex(res, req);
 });
 
 app.get("/snapshot", requireLogin, async (req, res) => {
@@ -122,20 +170,50 @@ app.get("/snapshot", requireLogin, async (req, res) => {
 });
 
 app.post("/notes", requireLogin, async (req, res) => {
+  const title = cleanText(req.body.title);
+  const content = cleanText(req.body.content);
+
+  if (!title || !content) {
+    return validationError(res, req, "Title and content are required.");
+  }
+
+  if (title.length > 120) {
+    return validationError(res, req, "Note title must be 120 characters or fewer.");
+  }
+
+  if (content.length > 1000) {
+    return validationError(res, req, "Note content must be 1000 characters or fewer.");
+  }
+
   await axios.post(
     `${BASE_URL}/notes`,
-    { title: req.body.title, content: req.body.content },
+    { title, content },
     { headers: authHeaders(req) }
   );
   res.redirect("/");
 });
 
 app.post("/notes/edit/:id", requireLogin, async (req, res) => {
+  const title = cleanText(req.body.title);
+  const content = cleanText(req.body.content);
+
+  if (!title || !content) {
+    return validationError(res, req, "Title and content are required.");
+  }
+
+  if (title.length > 120) {
+    return validationError(res, req, "Note title must be 120 characters or fewer.");
+  }
+
+  if (content.length > 1000) {
+    return validationError(res, req, "Note content must be 1000 characters or fewer.");
+  }
+
   await axios.patch(
     `${BASE_URL}/notes/${req.params.id}`,
     {
-      title: req.body.title || "",
-      content: req.body.content || ""
+      title,
+      content
     },
     { headers: authHeaders(req) }
   );
@@ -150,13 +228,33 @@ app.post("/notes/delete/:id", requireLogin, async (req, res) => {
 });
 
 app.post("/todos", requireLogin, async (req, res) => {
-  const tasks = req.body.tasks
+  const title = cleanText(req.body.title);
+  const tasksInput = cleanText(req.body.tasks);
+
+  if (!title || !tasksInput) {
+    return validationError(res, req, "Title and tasks are required.");
+  }
+
+  if (title.length > 120) {
+    return validationError(res, req, "Todo title must be 120 characters or fewer.");
+  }
+
+  const tasks = tasksInput
     .split(",")
-    .map((t) => ({ text: t.trim(), completed: false }));
+    .map((t) => ({ text: t.trim(), completed: false }))
+    .filter((task) => task.text.length > 0);
+
+  if (!tasks.length) {
+    return validationError(res, req, "Add at least one task.");
+  }
+
+  if (tasks.some((task) => task.text.length > 120)) {
+    return validationError(res, req, "Each task must be 120 characters or fewer.");
+  }
 
   await axios.post(
     `${BASE_URL}/todos`,
-    { title: req.body.title, tasks },
+    { title, tasks },
     { headers: authHeaders(req) }
   );
   res.redirect("/");

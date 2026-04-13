@@ -138,6 +138,24 @@
       background: rgba(255, 255, 255, 0.55);
     }
 
+    .status-banner {
+      border-radius: 18px;
+      padding: 0.9rem 1rem;
+      border: 1px solid transparent;
+    }
+
+    .status-banner.error {
+      border-color: rgba(180, 35, 24, 0.25);
+      background: rgba(180, 35, 24, 0.08);
+      color: #8f1d14;
+    }
+
+    .status-banner.success {
+      border-color: rgba(19, 117, 71, 0.22);
+      background: rgba(19, 117, 71, 0.08);
+      color: #11553a;
+    }
+
     summary { list-style: none; }
     summary::-webkit-details-marker { display: none; }
   </style>
@@ -157,6 +175,12 @@
           <a href="/logout" class="btn logout-btn btn-sm px-3">Logout</a>
         </div>
       </div>
+
+      <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+        <div class="status-banner error mt-4" id="status-banner"><%= errorMessage %></div>
+      <% } else { %>
+        <div class="status-banner success mt-4 d-none" id="status-banner"></div>
+      <% } %>
     </div>
 
     <div class="row g-4 mb-4">
@@ -165,9 +189,9 @@
           <div class="eyebrow mb-1">Notes</div>
           <h2 class="h4 section-title mb-3">Nytt notat</h2>
 
-          <form action="/notes" method="POST" class="d-grid gap-3">
-            <input class="form-control form-control-lg" type="text" name="title" placeholder="Tittel" required>
-            <input class="form-control form-control-lg" type="text" name="content" placeholder="Innhold" required>
+          <form action="/notes" method="POST" class="d-grid gap-3 js-ajax-form">
+            <input class="form-control form-control-lg" type="text" name="title" placeholder="Tittel" required minlength="1" maxlength="120">
+            <input class="form-control form-control-lg" type="text" name="content" placeholder="Innhold" required minlength="1" maxlength="1000">
             <button class="btn btn-primary btn-lg align-self-start px-4">Legg til</button>
           </form>
         </div>
@@ -178,9 +202,9 @@
           <div class="eyebrow mb-1">Todos</div>
           <h2 class="h4 section-title mb-3">Ny todo-liste</h2>
 
-          <form action="/todos" method="POST" class="d-grid gap-3">
-            <input class="form-control form-control-lg" type="text" name="title" placeholder="Tittel" required>
-            <input class="form-control form-control-lg" type="text" name="tasks" placeholder="Oppgaver (komma-separert)" required>
+          <form action="/todos" method="POST" class="d-grid gap-3 js-ajax-form">
+            <input class="form-control form-control-lg" type="text" name="title" placeholder="Tittel" required minlength="1" maxlength="120">
+            <input class="form-control form-control-lg" type="text" name="tasks" placeholder="Oppgaver (komma-separert)" required minlength="1" maxlength="1000">
             <button class="btn btn-primary btn-lg align-self-start px-4">Legg til</button>
           </form>
         </div>
@@ -205,8 +229,8 @@
                     <details class="note-editor">
                       <summary class="btn btn-sm btn-primary">Edit</summary>
                       <form action="/notes/edit/<%= note.id %>" method="POST" class="mt-3 d-flex gap-2 flex-wrap js-ajax-form">
-                        <input class="form-control" type="text" name="title" value="<%= note.title %>">
-                        <input class="form-control" type="text" name="content" value="<%= note.content %>">
+                        <input class="form-control" type="text" name="title" value="<%= note.title %>" required minlength="1" maxlength="120">
+                        <input class="form-control" type="text" name="content" value="<%= note.content %>" required minlength="1" maxlength="1000">
                         <button type="submit" class="btn btn-sm btn-success">Save</button>
                       </form>
                     </details>
@@ -273,9 +297,6 @@
   <script>
     const notesList = document.getElementById("notes-list");
     const todosList = document.getElementById("todos-list");
-    const notesForm = document.querySelector('form[action="/notes"]');
-    const todosForm = document.querySelector('form[action="/todos"]');
-
     function noteCard(note) {
       return `
         <div class="item-card p-3 p-lg-4" data-note-id="${note.id}">
@@ -362,6 +383,13 @@
       return response.json();
     }
 
+    function showStatus(message, type = 'error') {
+      const banner = document.getElementById('status-banner');
+      if (!banner) return;
+      banner.className = `status-banner ${type}`;
+      banner.textContent = message;
+    }
+
     async function submitForm(form) {
       const submitButton = form.querySelector('button[type="submit"]');
       form.classList.add('is-saving');
@@ -375,11 +403,13 @@
         });
 
         if (!response.ok) {
-          throw new Error('Request failed');
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.error || 'Noe gikk galt. Sjekk inndata og prøv igjen.');
         }
 
         const snapshot = await refreshSnapshot();
         renderDashboard(snapshot.data);
+        showStatus('Lagret.', 'success');
       } finally {
         if (submitButton) submitButton.disabled = false;
         form.classList.remove('is-saving');
@@ -390,14 +420,9 @@
       const form = event.target;
       if (!form.matches('.js-ajax-form, form[action="/notes"], form[action="/todos"]')) return;
       event.preventDefault();
-      submitForm(form).catch(() => {
-        window.location.reload();
+      submitForm(form).catch((error) => {
+        showStatus(error.message || 'Noe gikk galt. Sjekk inndata og prøv igjen.', 'error');
       });
-    });
-
-    [notesForm, todosForm].forEach((form) => {
-      if (!form) return;
-      form.classList.add('js-ajax-form');
     });
   </script>
 </body>

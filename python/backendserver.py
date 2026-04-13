@@ -23,6 +23,57 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+def clean_text(value):
+    return value.strip() if isinstance(value, str) else ""
+
+def validate_username(username):
+    username = clean_text(username)
+    if len(username) < 3:
+        return None, "Username must be at least 3 characters"
+    if len(username) > 30:
+        return None, "Username must be 30 characters or fewer"
+    return username, None
+
+def validate_password(password):
+    password = clean_text(password)
+    if len(password) < 6:
+        return None, "Password must be at least 6 characters"
+    if len(password) > 128:
+        return None, "Password must be 128 characters or fewer"
+    return password, None
+
+def validate_note(title, content):
+    title = clean_text(title)
+    content = clean_text(content)
+    if not title or not content:
+        return None, None, "Missing fields"
+    if len(title) > 120:
+        return None, None, "Note title must be 120 characters or fewer"
+    if len(content) > 1000:
+        return None, None, "Note content must be 1000 characters or fewer"
+    return title, content, None
+
+def validate_todo(title, tasks):
+    title = clean_text(title)
+    if not title or not isinstance(tasks, list):
+        return None, None, "Invalid todo"
+    if len(title) > 120:
+        return None, None, "Todo title must be 120 characters or fewer"
+
+    cleaned_tasks = []
+    for task in tasks:
+        text = clean_text(task.get("text")) if isinstance(task, dict) else ""
+        if not text:
+            continue
+        if len(text) > 120:
+            return None, None, "Each task must be 120 characters or fewer"
+        cleaned_tasks.append({"text": text, "completed": int(task.get("completed", 0)) if isinstance(task, dict) else 0})
+
+    if not cleaned_tasks:
+        return None, None, "Add at least one task"
+
+    return title, cleaned_tasks, None
+
 def init_db():
     c = get_db().cursor()
     c.execute("""CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY AUTOINCREMENT,user_id INTEGER,title TEXT NOT NULL,content TEXT NOT NULL)""")
@@ -45,11 +96,13 @@ def require_api_key(f):
 @app.route("/api/register", methods=["POST"])
 def register():
     d = request.json
-    username = d.get("username")
-    password = d.get("password")
+    username, error = validate_username(d.get("username"))
+    if error:
+        return {"error": error}, 400
 
-    if not username or not password:
-        return {"error": "Missing fields"}, 400
+    password, error = validate_password(d.get("password"))
+    if error:
+        return {"error": error}, 400
 
     hashed = generate_password_hash(password)
 
@@ -65,8 +118,11 @@ def register():
 @app.route("/api/login", methods=["POST"])
 def login():
     d = request.json
-    username = d.get("username")
-    password = d.get("password")
+    username = clean_text(d.get("username"))
+    password = clean_text(d.get("password"))
+
+    if not username or not password:
+        return {"error": "Missing fields"}, 400
 
     c = get_db().cursor()
     user = c.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
@@ -95,10 +151,11 @@ def get_data():
 def add_note():
     user_id = request.headers.get("user-id")
     d = request.json
-    if not d.get("title") or not d.get("content"):
-        return {"error": "Missing fields"}, 400
+    title, content, error = validate_note(d.get("title"), d.get("content"))
+    if error:
+        return {"error": error}, 400
     c = get_db().cursor()
-    c.execute("INSERT INTO notes (user_id, title, content) VALUES (?, ?, ?)", (user_id, d["title"], d["content"]))
+    c.execute("INSERT INTO notes (user_id, title, content) VALUES (?, ?, ?)", (user_id, title, content))
     c.connection.commit()
     c.connection.close()
     return {"message": "Note added"}
@@ -111,8 +168,14 @@ def edit_note(id):
     n = c.execute("SELECT * FROM notes WHERE id=?", (id,)).fetchone()
     if not n:
         return {"error": "Note not found"}, 404
-    title = d.get("title", n["title"])
-    content = d.get("content", n["content"])
+    title = clean_text(d.get("title", n["title"]))
+    content = clean_text(d.get("content", n["content"]))
+    if not title or not content:
+        return {"error": "Missing fields"}, 400
+    if len(title) > 120:
+        return {"error": "Note title must be 120 characters or fewer"}, 400
+    if len(content) > 1000:
+        return {"error": "Note content must be 1000 characters or fewer"}, 400
     c.execute("UPDATE notes SET title=?, content=? WHERE id=?", (title, content, id))
     c.connection.commit()
     c.connection.close()
@@ -132,12 +195,13 @@ def delete_note(id):
 def add_todo():
     user_id = request.headers.get("user-id")
     d = request.json
-    if not d.get("title") or not isinstance(d.get("tasks"), list):
-        return {"error": "Invalid todo"}, 400
+    title, tasks, error = validate_todo(d.get("title"), d.get("tasks"))
+    if error:
+        return {"error": error}, 400
     c = get_db().cursor()
-    c.execute("INSERT INTO todos (user_id, title) VALUES (?, ?)", (user_id, d["title"]))
+    c.execute("INSERT INTO todos (user_id, title) VALUES (?, ?)", (user_id, title))
     tid = c.lastrowid
-    for t in d["tasks"]:
+    for t in tasks:
         c.execute("INSERT INTO tasks (todo_id, text, completed) VALUES (?, ?, ?)", (tid, t.get("text"), int(t.get("completed", 0))))
     c.connection.commit()
     c.connection.close()
