@@ -55,6 +55,7 @@ app.post("/login", async (req, res) => {
     });
 
     req.session.user_id = data.user_id;
+    req.session.username = req.body.username;
     res.redirect("/");
   } catch (error) {
     const apiMessage = error?.response?.data?.error;
@@ -90,9 +91,33 @@ app.get("/", requireLogin, async (req, res) => {
       headers: authHeaders(req)
     });
 
-    res.render("index", { data: data || { notes: [], todos: [] } });
+    res.render("index", {
+      data: data || { notes: [], todos: [] },
+      username: req.session.username || "Unknown user"
+    });
   } catch {
-    res.render("index", { data: { notes: [], todos: [] } });
+    res.render("index", {
+      data: { notes: [], todos: [] },
+      username: req.session.username || "Unknown user"
+    });
+  }
+});
+
+app.get("/snapshot", requireLogin, async (req, res) => {
+  try {
+    const { data } = await axios.get(`${BASE_URL}/data`, {
+      headers: authHeaders(req)
+    });
+
+    res.json({
+      data: data || { notes: [], todos: [] },
+      username: req.session.username || "Unknown user"
+    });
+  } catch {
+    res.json({
+      data: { notes: [], todos: [] },
+      username: req.session.username || "Unknown user"
+    });
   }
 });
 
