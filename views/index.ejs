@@ -396,9 +396,10 @@
       if (submitButton) submitButton.disabled = true;
 
       try {
+        const formBody = new URLSearchParams(new FormData(form));
         const response = await fetch(form.action, {
           method: (form.method || 'POST').toUpperCase(),
-          body: new FormData(form),
+          body: formBody,
           headers: { 'X-Requested-With': 'fetch' }
         });
 

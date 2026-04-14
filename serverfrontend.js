@@ -75,6 +75,25 @@ function validationError(res, req, message) {
   return renderIndex(res, req, message);
 }
 
+function apiErrorMessage(error, fallbackMessage) {
+  return error?.response?.data?.error || fallbackMessage;
+}
+
+function apiErrorStatus(error, fallbackStatus = 500) {
+  return Number(error?.response?.status) || fallbackStatus;
+}
+
+function handleApiFailure(res, req, error, fallbackMessage) {
+  const message = apiErrorMessage(error, fallbackMessage);
+  const status = apiErrorStatus(error, 500);
+
+  if (isAjaxRequest(req)) {
+    return res.status(status).json({ error: message });
+  }
+
+  return renderIndex(res, req, message);
+}
+
 app.get("/login", (req, res) => {
   res.render("login", { error: null });
 });
@@ -84,8 +103,8 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-  const username = cleanText(req.body.username);
-  const password = cleanText(req.body.password);
+  const username = cleanText(req.body?.username);
+  const password = cleanText(req.body?.password);
 
   if (!username || !password) {
     return res.status(400).render("login", { error: "Username and password are required." });
@@ -112,8 +131,8 @@ app.post("/login", async (req, res) => {
 });
 
 app.post("/register", async (req, res) => {
-  const username = cleanText(req.body.username);
-  const password = cleanText(req.body.password);
+  const username = cleanText(req.body?.username);
+  const password = cleanText(req.body?.password);
 
   if (!username || !password) {
     return res.status(400).render("register", { error: "Username and password are required." });
@@ -170,8 +189,8 @@ app.get("/snapshot", requireLogin, async (req, res) => {
 });
 
 app.post("/notes", requireLogin, async (req, res) => {
-  const title = cleanText(req.body.title);
-  const content = cleanText(req.body.content);
+  const title = cleanText(req.body?.title);
+  const content = cleanText(req.body?.content);
 
   if (!title || !content) {
     return validationError(res, req, "Title and content are required.");
@@ -185,17 +204,21 @@ app.post("/notes", requireLogin, async (req, res) => {
     return validationError(res, req, "Note content must be 1000 characters or fewer.");
   }
 
-  await axios.post(
-    `${BASE_URL}/notes`,
-    { title, content },
-    { headers: authHeaders(req) }
-  );
-  res.redirect("/");
+  try {
+    await axios.post(
+      `${BASE_URL}/notes`,
+      { title, content },
+      { headers: authHeaders(req) }
+    );
+    return res.redirect("/");
+  } catch (error) {
+    return handleApiFailure(res, req, error, "Could not create note. Try again.");
+  }
 });
 
 app.post("/notes/edit/:id", requireLogin, async (req, res) => {
-  const title = cleanText(req.body.title);
-  const content = cleanText(req.body.content);
+  const title = cleanText(req.body?.title);
+  const content = cleanText(req.body?.content);
 
   if (!title || !content) {
     return validationError(res, req, "Title and content are required.");
@@ -209,27 +232,35 @@ app.post("/notes/edit/:id", requireLogin, async (req, res) => {
     return validationError(res, req, "Note content must be 1000 characters or fewer.");
   }
 
-  await axios.patch(
-    `${BASE_URL}/notes/${req.params.id}`,
-    {
-      title,
-      content
-    },
-    { headers: authHeaders(req) }
-  );
-  res.redirect("/");
+  try {
+    await axios.patch(
+      `${BASE_URL}/notes/${req.params.id}`,
+      {
+        title,
+        content
+      },
+      { headers: authHeaders(req) }
+    );
+    return res.redirect("/");
+  } catch (error) {
+    return handleApiFailure(res, req, error, "Could not update note. Try again.");
+  }
 });
 
 app.post("/notes/delete/:id", requireLogin, async (req, res) => {
-  await axios.delete(`${BASE_URL}/notes/${req.params.id}`, {
-    headers: authHeaders(req)
-  });
-  res.redirect("/");
+  try {
+    await axios.delete(`${BASE_URL}/notes/${req.params.id}`, {
+      headers: authHeaders(req)
+    });
+    return res.redirect("/");
+  } catch (error) {
+    return handleApiFailure(res, req, error, "Could not delete note. Try again.");
+  }
 });
 
 app.post("/todos", requireLogin, async (req, res) => {
-  const title = cleanText(req.body.title);
-  const tasksInput = cleanText(req.body.tasks);
+  const title = cleanText(req.body?.title);
+  const tasksInput = cleanText(req.body?.tasks);
 
   if (!title || !tasksInput) {
     return validationError(res, req, "Title and tasks are required.");
@@ -252,28 +283,40 @@ app.post("/todos", requireLogin, async (req, res) => {
     return validationError(res, req, "Each task must be 120 characters or fewer.");
   }
 
-  await axios.post(
-    `${BASE_URL}/todos`,
-    { title, tasks },
-    { headers: authHeaders(req) }
-  );
-  res.redirect("/");
+  try {
+    await axios.post(
+      `${BASE_URL}/todos`,
+      { title, tasks },
+      { headers: authHeaders(req) }
+    );
+    return res.redirect("/");
+  } catch (error) {
+    return handleApiFailure(res, req, error, "Could not create todo list. Try again.");
+  }
 });
 
 app.post("/tasks/toggle/:id", requireLogin, async (req, res) => {
-  await axios.patch(
-    `${BASE_URL}/tasks/${req.params.id}`,
-    { toggle: true },
-    { headers: authHeaders(req) }
-  );
-  res.redirect("/");
+  try {
+    await axios.patch(
+      `${BASE_URL}/tasks/${req.params.id}`,
+      { toggle: true },
+      { headers: authHeaders(req) }
+    );
+    return res.redirect("/");
+  } catch (error) {
+    return handleApiFailure(res, req, error, "Could not update task. Try again.");
+  }
 });
 
 app.post("/todos/delete/:id", requireLogin, async (req, res) => {
-  await axios.delete(`${BASE_URL}/todos/${req.params.id}`, {
-    headers: authHeaders(req)
-  });
-  res.redirect("/");
+  try {
+    await axios.delete(`${BASE_URL}/todos/${req.params.id}`, {
+      headers: authHeaders(req)
+    });
+    return res.redirect("/");
+  } catch (error) {
+    return handleApiFailure(res, req, error, "Could not delete todo list. Try again.");
+  }
 });
 
 app.listen(FRONTEND_PORT, "0.0.0.0", () => {
