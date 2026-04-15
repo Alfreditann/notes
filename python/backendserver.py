@@ -233,5 +233,29 @@ def delete_todo(id):
     c.connection.close()
     return {"message": "Todo deleted"}
 
+@app.route("/api/tasks/<int:id>", methods=["DELETE"])
+@require_api_key
+def delete_task(id):
+    c = get_db().cursor()
+    c.execute("DELETE FROM tasks WHERE id=?", (id,))
+    c.connection.commit()
+    c.connection.close()
+    return {"message": "Task deleted"}
+
+@app.route("/api/todos/<int:todo_id>/tasks", methods=["POST"])
+@require_api_key
+def add_task_to_todo(todo_id):
+    d = request.json
+    text = clean_text(d.get("text", ""))
+    if not text:
+        return {"error": "Task text is required"}, 400
+    if len(text) > 120:
+        return {"error": "Task must be 120 characters or fewer"}, 400
+    c = get_db().cursor()
+    c.execute("INSERT INTO tasks (todo_id, text, completed) VALUES (?, ?, ?)", (todo_id, text, 0))
+    c.connection.commit()
+    c.connection.close()
+    return {"message": "Task added"}
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)

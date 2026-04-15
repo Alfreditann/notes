@@ -330,6 +330,29 @@ app.post("/tasks/delete/:id", requireLogin, async (req, res) => {
   }
 });
 
+app.post("/todos/:todo_id/tasks", requireLogin, async (req, res) => {
+  const text = cleanText(req.body?.text);
+
+  if (!text) {
+    return validationError(res, req, "Task text is required.");
+  }
+
+  if (text.length > 120) {
+    return validationError(res, req, "Task must be 120 characters or fewer.");
+  }
+
+  try {
+    await axios.post(
+      `${BASE_URL}/todos/${req.params.todo_id}/tasks`,
+      { text },
+      { headers: authHeaders(req) }
+    );
+    return res.redirect("/");
+  } catch (error) {
+    return handleApiFailure(res, req, error, "Could not add task. Try again.");
+  }
+});
+
 app.listen(FRONTEND_PORT, "0.0.0.0", () => {
   console.log(`Frontend running on http://localhost:${FRONTEND_PORT}`);
 });
