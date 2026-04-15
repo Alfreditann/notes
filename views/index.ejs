@@ -274,11 +274,16 @@
                           <%= task.text %>
                         </span>
 
-                        <form action="/tasks/toggle/<%= task.id %>" method="POST" class="js-ajax-form">
-                          <button class="btn btn-sm <%= task.completed ? 'btn-success' : 'btn-outline-secondary' %>">
-                            <%= task.completed ? 'Done' : 'Mark' %>
-                          </button>
-                        </form>
+                        <div class="d-flex gap-2">
+                          <form action="/tasks/toggle/<%= task.id %>" method="POST" class="js-ajax-form">
+                            <button class="btn btn-sm <%= task.completed ? 'btn-success' : 'btn-outline-secondary' %>">
+                              <%= task.completed ? 'Done' : 'Mark' %>
+                            </button>
+                          </form>
+                          <form action="/tasks/delete/<%= task.id %>" method="POST" class="js-ajax-form">
+                            <button class="btn btn-sm btn-danger">Delete</button>
+                          </form>
+                        </div>
                       </li>
                     <% }) %>
                   </ul>
@@ -339,11 +344,16 @@
                   ${escapeHtml(task.text)}
                 </span>
 
-                <form action="/tasks/toggle/${task.id}" method="POST" class="js-ajax-form">
-                  <button class="btn btn-sm ${task.completed ? 'btn-success' : 'btn-outline-secondary'}">
-                    ${task.completed ? 'Done' : 'Mark'}
-                  </button>
-                </form>
+                <div class="d-flex gap-2">
+                  <form action="/tasks/toggle/${task.id}" method="POST" class="js-ajax-form">
+                    <button class="btn btn-sm ${task.completed ? 'btn-success' : 'btn-outline-secondary'}">
+                      ${task.completed ? 'Done' : 'Mark'}
+                    </button>
+                  </form>
+                  <form action="/tasks/delete/${task.id}" method="POST" class="js-ajax-form">
+                    <button class="btn btn-sm btn-danger">Delete</button>
+                  </form>
+                </div>
               </li>
             `).join('')}
           </ul>

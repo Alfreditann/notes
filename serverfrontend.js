@@ -319,6 +319,17 @@ app.post("/todos/delete/:id", requireLogin, async (req, res) => {
   }
 });
 
+app.post("/tasks/delete/:id", requireLogin, async (req, res) => {
+  try {
+    await axios.delete(`${BASE_URL}/tasks/${req.params.id}`, {
+      headers: authHeaders(req)
+    });
+    return res.redirect("/");
+  } catch (error) {
+    return handleApiFailure(res, req, error, "Could not delete task. Try again.");
+  }
+});
+
 app.listen(FRONTEND_PORT, "0.0.0.0", () => {
   console.log(`Frontend running on http://localhost:${FRONTEND_PORT}`);
 });
