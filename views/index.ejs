@@ -410,6 +410,9 @@
 
         const snapshot = await refreshSnapshot();
         renderDashboard(snapshot.data);
+        if (form.action.endsWith('/notes') || form.action.endsWith('/todos')) {
+          form.reset();
+        }
         showStatus('Lagret.', 'success');
       } finally {
         if (submitButton) submitButton.disabled = false;
