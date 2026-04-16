@@ -68,7 +68,7 @@ async function renderIndex(res, req, errorMessage = null) {
 }
 
 function validationError(res, req, message) {
-  if (isAjaxRequest(req)) {
+  if (isAjaxRequest(req)) { 
     return res.status(400).json({ error: message });
   }
 
@@ -324,6 +324,9 @@ app.post("/tasks/delete/:id", requireLogin, async (req, res) => {
     await axios.delete(`${BASE_URL}/tasks/${req.params.id}`, {
       headers: authHeaders(req)
     });
+    if (isAjaxRequest(req)) {
+      return res.json({ message: "Task deleted" });
+    }
     return res.redirect("/");
   } catch (error) {
     return handleApiFailure(res, req, error, "Could not delete task. Try again.");
