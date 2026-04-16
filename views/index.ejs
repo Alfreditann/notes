@@ -352,7 +352,7 @@
                 <div class="d-flex gap-2">
                   <form action="/tasks/toggle/${task.id}" method="POST" class="js-ajax-form">
                     <button class="btn btn-sm ${task.completed ? 'btn-success' : 'btn-outline-secondary'}">
-                      ${task.completed ? 'Done' : 'Mark'}
+                      ${task.completed ? 'Complete' : 'Incomplete'}
                     </button>
                   </form>
                   <form action="/tasks/delete/${task.id}" method="POST" class="js-ajax-form">
